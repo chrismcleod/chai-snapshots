@@ -1,0 +1,31 @@
+{
+  "name": "chai-snapshots",
+  "version": "1.0.0",
+  "description": "Snapshot generator and matcher for chai",
+  "main": "lib/index.js",
+  "typings": "lib/index",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chrismcleod/chai-snapshots.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chrismcleod/chai-snapshots/issues"
+  },
+  "homepage": "https://github.com/chrismcleod/chai-snapshots#readme",
+  "devDependencies": {
+    "@types/chai": "^3.4.34",
+    "@types/lodash": "^4.14.45",
+    "@types/mocha": "^2.2.33",
+    "@types/node": "^6.0.52",
+    "chai": "^3.5.0",
+    "lodash": "^4.17.4",
+    "mocha": "^3.2.0",
+    "ts-node": "^1.7.2",
+    "typescript": "^2.0.10"
+  },
+  "scripts": {
+    "watch": "tsc -w -d -p ."
+  }
+}
