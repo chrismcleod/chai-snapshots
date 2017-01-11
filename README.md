@@ -16,6 +16,6 @@ chai.use(snapshots.SnapshotMatchers({
 it("renders correctly", () => {
   const state = Immutable.fromJS({user: null});
   const login = toJSON(shallow(<Login/>));
-  expect(login).to.matchSnapshotJSON(this);
+  expect(login).to.matchSnapshotJSON();
 });
 ```
