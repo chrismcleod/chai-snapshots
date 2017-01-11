@@ -2,10 +2,15 @@
 Snapshot generator and matcher for chai
 
 Example Useage
-```typescript
+```javascript
 // helper.js
 import * as snapshots from "chai-snapshots";
-chai.use(snapshots.SnapshotMatchers({ pathToSnaps: "./src/tests/snaps.json", ignoredAttributes: ["created_at", "updated_at"] }));
+
+chai.use(snapshots.SnapshotMatchers({ 
+  pathToSnaps: "./src/tests/snaps.json", 
+  ignoredAttributes: ["created_at", "updated_at"] 
+}));
+
 
 //component.spec.js
 it("renders correctly", () => {
