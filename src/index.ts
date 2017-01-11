@@ -1,48 +1,60 @@
 import * as _ from "lodash";
+import * as chai from "chai";
 import * as fs from "fs";
-const snapshotContents = fs.readFileSync("./src/__tests__/snaps.json", {flag: "a+"}).toString();
-let snapshots;
-if(snapshotContents.length === 0) {
-  snapshots = {};
-} else {
-  snapshots = JSON.parse(snapshotContents);
+import * as mocha from "mocha";
+let snapshotContents;
+let snapshots = {};
+let pathToSnaps = "";
+let currentTest;
+
+export type ChaiSnapshotsOptions = {
+  pathToSnaps?: string;
+  ignoredAttributes?: Array<string>;
 }
 
-const removeProps = function(obj, keys) {
-  if(obj instanceof Array){
-    obj.forEach(function(item){
-      removeProps(item, keys);
-    });
-  } else if(typeof obj === 'object' && obj) {
-    Object.getOwnPropertyNames(obj).forEach(function(key) {
-      if(keys.indexOf(key) !== -1) delete obj[key];
-      else removeProps(obj[key], keys);
-    });
-  }
-}
-
-export const SnapshotMatchers: { (): any, ignoredAttributes: Array<string> } = (() => {
-  const sinonChai: any = function(chai) {
-    chai.Assertion.addMethod('matchSnapshotJSON', function (test) {
+export const SnapshotMatchers = function (options: ChaiSnapshotsOptions) {
+  options.pathToSnaps = options.pathToSnaps || "./src/__tests__/snaps.json";
+  options.ignoredAttributes = options.ignoredAttributes || [];
+  pathToSnaps = options.pathToSnaps;
+  return function (chai) {
+    snapshotContents = fs.readFileSync(options.pathToSnaps, { flag: "a+" }).toString();
+    if (snapshotContents.length > 0) {
+      snapshots = JSON.parse(snapshotContents);
+    }
+    chai.Assertion.addMethod('matchSnapshotJSON', function (key?: string) {
       const obj = this._obj;
       chai.expect(obj).not.to.be.falsy;
       const ctx = (<any>this);
-      const path = _.snakeCase(test.test.fullTitle());
+      const path = key || _.snakeCase(currentTest.fullTitle());
       let snapshot = snapshots[path];
       if (!snapshot) {
         snapshots[path] = snapshot = _.cloneDeep(obj);
       };
-      removeProps(snapshot, sinonChai.ignoredAttributes || []);
-      removeProps(obj, sinonChai.ignoredAttributes || []);
-      chai.expect(snapshot, "Expected snapshot to match").to.eql(obj);
+      const snapshotKeepKeys = _.difference(Object.keys(snapshot), options.ignoredAttributes);
+      const objKeepKeys = _.difference(Object.keys(obj), options.ignoredAttributes);
+      const expected = JSON.stringify(snapshot, snapshotKeepKeys, 2);
+      const actual = JSON.stringify(obj, objKeepKeys, 2);
+      chai.expect(expected, "Expected snapshot to match").to.eql(actual);
     });
   }
-  sinonChai.ignoredAttributes = ["created_at", "updated_at"];
-  return sinonChai;
-})();
+}
 
 if (after) {
   after(function () {
-    fs.writeFileSync("./src/__tests__/snaps.json", JSON.stringify(snapshots));
+    fs.writeFileSync(pathToSnaps, JSON.stringify(snapshots, null, 2));
   });
+}
+
+if (beforeEach) {
+  beforeEach(function () {
+    currentTest = this.currentTest;
+  });
+}
+
+declare global {
+  module Chai {
+    interface Assertion {
+      matchSnapshotJSON():Assertion;
+    }
+  }
 }
