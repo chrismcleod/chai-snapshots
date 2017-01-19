@@ -2,6 +2,7 @@ import * as _ from "lodash";
 import * as chai from "chai";
 import * as fs from "fs";
 import * as mocha from "mocha";
+
 let snapshotContents;
 let snapshots = {};
 let pathToSnaps = "";
@@ -17,8 +18,12 @@ export const SnapshotMatchers = function (options: ChaiSnapshotsOptions) {
   options.ignoredAttributes = options.ignoredAttributes || [];
   pathToSnaps = options.pathToSnaps;
   return function (chai) {
-    snapshotContents = fs.readFileSync(options.pathToSnaps, { flag: "a+" }).toString();
-    if (snapshotContents.length > 0) {
+    try {
+      snapshotContents = fs.readFileSync(options.pathToSnaps, { flag: "r" }).toString();
+    } catch(e) {
+      snapshotContents = "";
+    }
+    if (snapshotContents && snapshotContents.length > 0) {
       snapshots = JSON.parse(snapshotContents);
     }
     chai.Assertion.addMethod('matchSnapshotJSON', function (key?: string) {
@@ -30,10 +35,14 @@ export const SnapshotMatchers = function (options: ChaiSnapshotsOptions) {
       if (!snapshot) {
         snapshots[path] = snapshot = _.cloneDeep(obj);
       };
-      const snapshotKeepKeys = _.difference(Object.keys(snapshot), options.ignoredAttributes);
-      const objKeepKeys = _.difference(Object.keys(obj), options.ignoredAttributes);
-      const expected = JSON.stringify(snapshot, snapshotKeepKeys, 2);
-      const actual = JSON.stringify(obj, objKeepKeys, 2);
+      const expected = JSON.stringify(snapshot, (key, value) => {
+        if(_.includes(options.ignoredAttributes, key)) return undefined;
+        return value;
+      }, 2);
+      const actual = JSON.stringify(obj, (key, value) => {
+        if(_.includes(options.ignoredAttributes, key)) return undefined;
+        return value;
+      }, 2);
       chai.expect(expected, "Expected snapshot to match").to.eql(actual);
     });
   }
@@ -41,7 +50,8 @@ export const SnapshotMatchers = function (options: ChaiSnapshotsOptions) {
 
 if (after) {
   after(function () {
-    fs.writeFileSync(pathToSnaps, JSON.stringify(snapshots, null, 2));
+    const data = JSON.stringify(snapshots, undefined, 2);
+    fs.writeFileSync(pathToSnaps, data, {flag: "w+"});
   });
 }
 
