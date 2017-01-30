@@ -13,7 +13,7 @@ export type ChaiSnapshotsOptions = {
   ignoredAttributes?: Array<string>;
 }
 
-export const SnapshotMatchers = function (options: ChaiSnapshotsOptions) {
+export const SnapshotMatchers = function (options: ChaiSnapshotsOptions = {}) {
   options.pathToSnaps = options.pathToSnaps || "./src/__tests__/snaps.json";
   options.ignoredAttributes = options.ignoredAttributes || [];
   pathToSnaps = options.pathToSnaps;
