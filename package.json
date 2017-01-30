@@ -1,6 +1,6 @@
 {
   "name": "chai-snapshots",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Snapshot generator and matcher for chai",
   "main": "lib/index.js",
   "typings": "lib/index",
