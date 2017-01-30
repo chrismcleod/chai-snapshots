@@ -11,11 +11,13 @@ let currentTest;
 export type ChaiSnapshotsOptions = {
   pathToSnaps?: string;
   ignoredAttributes?: Array<string>;
+  devMode?: boolean;
 }
 
 export const SnapshotMatchers = function (options: ChaiSnapshotsOptions = {}) {
   options.pathToSnaps = options.pathToSnaps || "./src/__tests__/snaps.json";
   options.ignoredAttributes = options.ignoredAttributes || [];
+  options.devMode = typeof options.devMode === "undefined" ? false : true;
   pathToSnaps = options.pathToSnaps;
   return function (chai) {
     try {
@@ -32,7 +34,7 @@ export const SnapshotMatchers = function (options: ChaiSnapshotsOptions = {}) {
       const ctx = (<any>this);
       const path = key || _.snakeCase(currentTest.fullTitle());
       let snapshot = snapshots[path];
-      if (!snapshot) {
+      if (!snapshot || options.devMode) {
         snapshots[path] = snapshot = _.cloneDeep(obj);
       };
       const expected = JSON.stringify(snapshot, (key, value) => {
